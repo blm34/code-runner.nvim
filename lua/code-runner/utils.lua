@@ -14,7 +14,7 @@ M.is_pwsh = vim.o.shell:lower():match("powershell") ~= nil
 ---@return boolean
 function M.is_executable(path)
     if not path or path == "" then return false end
-    return vim.loop.fs_stat(path) ~= nil
+    return vim.uv.fs_stat(path) ~= nil
 end
 
 ---Wrap the given argument in quotes
