@@ -1,0 +1,327 @@
+*code-runner.txt*	Run code files from within Neovim
+
+Author:   blm34
+License:  MIT <https://opensource.org/licenses/MIT>
+
+==============================================================================
+CONTENTS					*code-runner-contents*
+
+	1. Introduction ......................... |code-runner-intro|
+	2. Setup ................................ |code-runner-setup|
+	3. Configuration ........................ |code-runner-config|
+	4. API .................................. |code-runner-api|
+	5. Terminal slots ....................... |code-runner-slots|
+	6. Runners .............................. |code-runner-runners|
+	   6.1 Python ........................... |code-runner-runners-python|
+	   6.2 Adding runners ................... |code-runner-runners-adding|
+
+==============================================================================
+1. INTRODUCTION					*code-runner-intro*
+
+code-runner.nvim runs source files in an embedded terminal without leaving
+Neovim. It manages one or more terminal splits (|code-runner-slots|), selects
+the best available one automatically, and supports pinning files to named
+registers so you can run a fixed entry-point from any buffer.
+
+Features:~
+	- Run the currently focused file
+	- Re-run the last run file from anywhere
+	- Pin files to registers `a`–`z` and run them on demand
+	- Automatic interpreter discovery for Python virtual environments
+	- Configurable behaviour when all terminals are busy
+
+Requires:~
+	- Neovim >= 0.10
+	- toggleterm.nvim <https://github.com/akinsho/toggleterm.nvim>
+
+==============================================================================
+2. SETUP					*code-runner-setup*
+
+Call `setup()` once during initialisation. All fields are optional. >lua
+
+	require("code-runner").setup({
+	    max_slots          = 3,
+	    slot_id_offset     = 100,
+	    busy_behaviour     = "ask",
+	    interrupt_delay_ms = 100,
+	    runners = {
+	        python = {
+	            venv_names = { ".venv", "venv", ".env", "env" },
+	        },
+	    },
+	})
+<
+
+`setup()` only needs to be called if you want to change the defaults.
+
+Suggested keymaps:~
+>lua
+	local cr = require("code-runner")
+
+	-- Run files
+	vim.keymap.set("n", "<leader>rc", cr.run_current_file)
+	vim.keymap.set("n", "<leader>rn", function()
+	    cr.run_current_file(true)
+	end)
+	vim.keymap.set("n", "<leader>rl", cr.rerun_last_command)
+
+	-- Register pinning
+	vim.keymap.set("n", "<leader>rs", cr.save_current_file_path_to_register)
+	vim.keymap.set("n", "<leader>rr", cr.run_file_from_register)
+
+	-- Terminal management
+	vim.keymap.set("n", "<leader>rT", cr.toggle_all_terminals)
+	vim.keymap.set("n", "<leader>rt", cr.toggle_terminal)
+	vim.keymap.set("n", "<leader>rx", cr.close_all_terminals)
+<
+
+==============================================================================
+3. CONFIGURATION				*code-runner-config*
+
+All options are passed to |code-runner-setup| as a single table.
+
+------------------------------------------------------------------------------
+						*code-runner-config-max_slots*
+max_slots ~
+	Type: `integer`  Default: `3`
+
+	Maximum number of concurrent runner terminals. Capped at `9` (slot
+	selection uses a single digit). Values above `9` are silently clamped
+	and a warning is issued.
+
+------------------------------------------------------------------------------
+					*code-runner-config-slot_id_offset*
+slot_id_offset ~
+	Type: `integer`  Default: `100`
+
+	The toggleterm terminal ID for slot N is `slot_id_offset + N`. Change
+	this if the range clashes with other toggleterm terminals you have
+	configured.
+
+------------------------------------------------------------------------------
+					*code-runner-config-busy_behaviour*
+busy_behaviour ~
+	Type: `"ask"|"cancel"|"interrupt"|"new"`  Default: `"ask"`
+
+	Controls what happens when |code-runner.run| targets a terminal that
+	is currently running a command.
+
+	`"ask"`       Show a |vim.ui.select| prompt with three choices:
+	              Cancel, Interrupt terminal, Open new terminal.
+	`"cancel"`    Discard the new run silently.
+	`"interrupt"` Interrupt the first busy terminal and re-run there.
+	`"new"`       Always open a new terminal slot.
+
+------------------------------------------------------------------------------
+				       *code-runner-config-interrupt_delay_ms*
+interrupt_delay_ms ~
+	Type: `integer`  Default: `100`
+
+	Milliseconds to wait between sending SIGINT to a terminal and sending
+	the replacement command. Increase this if the shell needs more time to
+	settle after an interrupt.
+
+------------------------------------------------------------------------------
+				    *code-runner-config-runners-python-venvs*
+runners.python.venv_names ~
+	Type: `string[]`  Default: `{ ".venv", "venv", ".env", "env" }`
+
+	Directory names to check inside each ancestor directory when searching
+	for a Python virtual environment. See |code-runner-runners-python| for the
+	full resolution order.
+
+==============================================================================
+4. API						*code-runner-api*
+
+All functions are accessed via: >lua
+
+	local cr = require("code-runner")
+<
+------------------------------------------------------------------------------
+					      *code-runner.run_current_file*
+`run_current_file`([{new_terminal}])
+
+	Run the file open in the focused buffer.
+
+	Parameters:~
+	  {new_terminal}  `boolean?`  When `true`, always open a new slot
+	                  instead of reusing an existing one. Default: `false`.
+
+	Produces a warning and does nothing if:
+	  - The buffer has no associated file path.
+	  - The file is not readable on disk.
+	  - The filetype is not supported by any registered runner.
+	  - The runner fails to build a command (e.g. no interpreter found).
+
+------------------------------------------------------------------------------
+					     *code-runner.rerun_last_command*
+`rerun_last_command`([{new_terminal}])
+
+	Re-run the most recently executed file.
+
+	Parameters:~
+	  {new_terminal}  `boolean?`  When `true`, open a new slot.
+	                  Default: `false`.
+
+	Produces a warning if no file has been run yet in the current session.
+
+------------------------------------------------------------------------------
+				      *code-runner.run_file_from_register*
+`run_file_from_register`([{opts}])
+
+	Run a file whose path is stored in a named register.
+
+	Parameters:~
+	  {opts}  `table?`
+	    {register}      `string?`   A single letter `a`–`z`. When given,
+	                    the register is read directly with no prompt.
+	    {new_terminal}  `boolean?`  When `true`, open a new slot.
+	                    Default: `false`.
+
+	When {register} is omitted, a |vim.ui.select| picker lists every
+	register that contains a path to a supported, readable file.
+
+------------------------------------------------------------------------------
+			    *code-runner.save_current_file_path_to_register*
+`save_current_file_path_to_register`([{register}])
+
+	Save the absolute path of the focused file into a named register.
+
+	Parameters:~
+	  {register}  `string?`  A single letter `a`–`z`. When omitted, the
+	              user is prompted via |input()|.
+
+------------------------------------------------------------------------------
+					       *code-runner.toggle_terminal*
+`toggle_terminal`([{slot}])
+
+	Toggle the visibility of a single runner terminal.
+
+	Parameters:~
+	  {slot}  `integer?`  Terminal slot number (1–`max_slots`). When
+	          omitted, the user is prompted to press a digit key.
+
+------------------------------------------------------------------------------
+					   *code-runner.toggle_all_terminals*
+`toggle_all_terminals`()
+
+	Toggle all runner terminals at once.
+
+	If any terminal is currently open, all open terminals are closed.
+	If all terminals are closed, all are opened.
+
+	The focused window is preserved across the operation.
+
+------------------------------------------------------------------------------
+					       *code-runner.close_terminal*
+`close_terminal`([{slot}])
+
+	Interrupt the process in a terminal and close the terminal.
+
+	Parameters:~
+	  {slot}  `integer?`  Terminal slot number. When omitted, the user is
+	          prompted to press a digit key.
+
+------------------------------------------------------------------------------
+					   *code-runner.close_all_terminals*
+`close_all_terminals`()
+
+	Interrupt and close every active runner terminal.
+
+==============================================================================
+5. TERMINAL SLOTS				*code-runner-slots*
+
+Runner terminals are numbered from 1 up to |code-runner-config-max_slots|.
+Slot numbers are managed automatically:
+
+  - On the first run, slot 1 is created.
+  - Subsequent runs reuse the lowest-numbered idle slot.
+  - When a terminal is closed its slot number is freed and reused before a
+    higher number is allocated (gaps are filled).
+
+A terminal is considered *idle* once a sentinel file for its slot appears on
+disk. The sentinel is written by the shell command after the user's command
+exits. A terminal is *busy* while the sentinel is absent.
+
+The behaviour when all slots are busy is controlled by
+|code-runner-config-busy_behaviour|.
+
+==============================================================================
+6. RUNNERS					*code-runner-runners*
+ 
+A runner is a Lua module that tells code-runner how to build the shell command
+for a given filetype. Each runner is registered by filetype name so the
+correct one is selected automatically when a file is run.
+ 
+------------------------------------------------------------------------------
+6.1 PYTHON RUNNER				*code-runner-runners-python*
+
+When a Python file is run, the interpreter is resolved in this order:
+
+  1. `$VIRTUAL_ENV` environment variable. If set and the `python` binary
+     inside that directory is executable, it is used directly.
+
+  2. Virtual environment search. Starting from the directory of the file
+     being run, each ancestor directory is checked for a subdirectory whose
+     name is in |code-runner-config-runners-python-venvs|. The first
+     matching executable wins.
+
+  3. `python3` on `$PATH`.
+
+  4. `python` on `$PATH`.
+
+If none of these succeed an error notification is shown and the run is
+aborted.
+
+Both the interpreter path and the file path are shell-quoted automatically
+when they contain spaces.
+
+------------------------------------------------------------------------------
+6.2 ADDING RUNNERS				*code-runner-runners-adding*
+
+A runner is a Lua module that tells code-runner how to execute files of a
+given filetype. Create the module at: >
+
+	lua/code-runner/languages/{name}.lua
+<
+
+The module must return a table with two keys:
+
+`filetypes` ~
+	`string[]`  One or more Neovim filetype strings this runner handles.
+
+`build_command` ~
+	`fun(path: string): string?`
+
+	Receives the absolute path of the file to run. Returns the shell
+	command string, or `nil` on failure (after emitting a notification).
+
+Example: >lua
+
+	-- lua/code-runner/languages/python.lua
+	local M = {}
+
+	M.filetypes = { "python" }
+
+	function M.build_command(path)
+	    if vim.fn.executable("python") == 0 then
+	        vim.notify("[CodeRunner] python not found", vim.log.levels.ERROR)
+	        return nil
+	    end
+	    return string.format("python %s", path)
+	end
+
+	return M
+<
+
+Register the runner in `lua/code-runner/executor/core.lua` by adding it to
+the `runners` table: >lua
+
+	local runners = {
+	    python = require("code-runner.languages.python"),
+	    lua   = require("code-runner.languages.lua"),
+	}
+<
+
+==============================================================================
+vim:tw=78:ts=8:noet:ft=help:norl:
