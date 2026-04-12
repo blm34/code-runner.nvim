@@ -6,25 +6,19 @@ local M = {}
 ---@class CodeRunnerRunnersConfig
 ---@field python CodeRunnerPythonConfig
 
----@class BusyBehaviour
----@field behaviour "ask" | "interrupt" | "cancel" | "new"
----@field interrupt_delay_ms integer
-
 ---@class CodeRunnerConfig
 ---@field max_slots integer Maximum 9
 ---@field slot_id_offset integer
----@field busy_behaviour BusyBehaviour
+---@field busy_behaviour "ask" | "interrupt" | "cancel" | "new"
+---@field interrupt_delay_ms integer
 ---@field runners CodeRunnerRunnersConfig
 
 ---@type CodeRunnerConfig
 M.defaults = {
     max_slots = 3,
     slot_id_offset = 100,
-    -- Unnest this part
-    busy_behaviour = {
-        behaviour = "ask",
-        interrupt_delay_ms = 100,
-    },
+    busy_behaviour = "ask",
+    interrupt_delay_ms = 100,
     runners = {
         python = {
             venv_names = { ".venv", "venv", ".env", "env" },
@@ -42,13 +36,13 @@ M.options = M.defaults
 ---@field python CodeRunnerPythonConfig?
 
 ---@class BusyBehaviourOpts
----@field behaviour "ask" | "interrupt" | "cancel" | "new"?
 ---@field interrupt_delay_ms integer?
 
 ---@class CodeRunnerConfigOpts
 ---@field max_slots integer? Maximum 9
 ---@field slot_id_offset integer?
----@field busy_behaviour BusyBehaviour?
+---@field busy_behaviour "ask" | "interrupt" | "cancel" | "new"?
+---@field interrupt_delay_ms integer?
 ---@field runners CodeRunnerRunnersConfig?
 
 ---@param opts CodeRunnerConfigOpts?

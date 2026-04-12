@@ -22,8 +22,12 @@ describe("code-runner.config", function()
             assert.equal(100, config.defaults.slot_id_offset)
         end)
 
+        it("has busy_behaviour = 'ask'", function()
+            assert.equal("ask", config.defaults.busy_behaviour)
+        end)
+
         it("has interrupt_delay_ms = 100", function()
-            assert.equal(100, config.defaults.busy_behaviour.interrupt_delay_ms)
+            assert.equal(100, config.defaults.interrupt_delay_ms)
         end)
 
         it("has python venv_names list", function()
@@ -62,10 +66,22 @@ describe("code-runner.config", function()
             assert.equal(5, config.options.max_slots)
         end)
 
+        it("overrides busy_behaviour", function()
+            config.setup({ busy_behaviour = "interrupt" })
+            assert.equal("interrupt", config.options.busy_behaviour)
+        end)
+
+        it("accepts all valid busy_behaviour values", function()
+            for _, value in ipairs({ "ask", "cancel", "interrupt", "new" }) do
+                config.setup({ busy_behaviour = value })
+                assert.equal(value, config.options.busy_behaviour)
+            end
+        end)
+
         it("overrides interrupt_delay_ms", function()
-            local opts = { busy_behaviour = { interrupt_delay_ms = 250 } }
+            local opts = { interrupt_delay_ms = 250 }
             config.setup(opts)
-            assert.equal(250, config.options.busy_behaviour.interrupt_delay_ms)
+            assert.equal(250, config.options.interrupt_delay_ms)
         end)
 
         it("deep merges runner config", function()
