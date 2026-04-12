@@ -1,7 +1,5 @@
 local M = {}
 
--- TODO: Does this need tests?
-
 ---Setup up the plugin.
 ---@param opts CodeRunnerConfigOpts?
 function M.setup(opts)
