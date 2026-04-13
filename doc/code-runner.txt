@@ -9,11 +9,12 @@ CONTENTS					*code-runner-contents*
 	1. Introduction ......................... |code-runner-intro|
 	2. Setup ................................ |code-runner-setup|
 	3. Configuration ........................ |code-runner-config|
-	4. API .................................. |code-runner-api|
-	5. Terminal slots ....................... |code-runner-slots|
-	6. Runners .............................. |code-runner-runners|
-	   6.1 Python ........................... |code-runner-runners-python|
-	   6.2 Adding runners ................... |code-runner-runners-adding|
+	4. Commands ............................. |code-runner-commands|
+	5. API .................................. |code-runner-api|
+	6. Terminal slots ....................... |code-runner-slots|
+	7. Runners .............................. |code-runner-runners|
+	   7.1 Python ........................... |code-runner-runners-python|
+	   7.2 Adding runners ................... |code-runner-runners-adding|
 
 ==============================================================================
 1. INTRODUCTION					*code-runner-intro*
@@ -53,6 +54,9 @@ Call `setup()` once during initialisation. All fields are optional. >lua
 <
 
 `setup()` only needs to be called if you want to change the defaults.
+
+The |:CodeRunner| command is available immediately after the plugin loads.
+See |code-runner-commands| for the full command reference.
 
 Suggested keymaps:~
 >lua
@@ -127,16 +131,94 @@ runners.python.venv_names ~
 	Type: `string[]`  Default: `{ ".venv", "venv", ".env", "env" }`
 
 	Directory names to check inside each ancestor directory when searching
-	for a Python virtual environment. See |code-runner-runners-python| for the
-	full resolution order.
+	for a Python virtual environment. See |code-runner-runners-python| for
+	the full resolution order.
 
 ==============================================================================
-4. API						*code-runner-api*
+4. COMMANDS					*code-runner-commands*
+
+A single |:CodeRunner| command with subcommands covers all functionality.
+Subcommand names tab-complete, as do register letters and slot numbers where
+applicable.
+
+------------------------------------------------------------------------------
+							    *:CodeRunner*
+`:CodeRunner`
+`:CodeRunner!`
+
+	Run the file open in the focused buffer. Bang forces a new terminal
+	slot instead of reusing an existing one.
+
+	Equivalent to |code-runner.run_current_file|.
+
+------------------------------------------------------------------------------
+							*:CodeRunner-FromReg*
+`:CodeRunner FromReg [{reg}]`
+`:CodeRunner! FromReg [{reg}]`
+
+	Run the file whose path is stored in register {reg}. When {reg} is
+	omitted a picker lists all registers containing runnable files. Bang
+	forces a new terminal slot.
+
+	Tab-completion offers the register letters that currently contain a
+	path to a supported, readable file.
+
+	Equivalent to |code-runner.run_file_from_register|.
+
+------------------------------------------------------------------------------
+							*:CodeRunner-SaveReg*
+`:CodeRunner SaveReg [{reg}]`
+
+	Save the path of the focused file into register {reg}. When {reg} is
+	omitted the user is prompted.
+
+	Tab-completion offers all registers `a`–`z`, with any that already
+	contain a runnable file listed first.
+
+	Equivalent to |code-runner.save_current_file_path_to_register|.
+
+------------------------------------------------------------------------------
+							  *:CodeRunner-Last*
+`:CodeRunner Last`
+`:CodeRunner! Last`
+
+	Re-run the most recently executed file. Bang forces a new terminal
+	slot.
+
+	Equivalent to |code-runner.rerun_last_command|.
+
+------------------------------------------------------------------------------
+							*:CodeRunner-Toggle*
+`:CodeRunner Toggle [{slot}]`
+
+	Toggle all runner terminals. When {slot} is given, only that terminal
+	is toggled.
+
+	Tab-completion offers the currently active slot numbers.
+
+	Equivalent to |code-runner.toggle_all_terminals| or
+	|code-runner.toggle_terminal|.
+
+------------------------------------------------------------------------------
+							 *:CodeRunner-Close*
+`:CodeRunner Close [{slot}]`
+
+	Close all runner terminals. When {slot} is given, only that terminal
+	is closed.
+
+	Tab-completion offers the currently active slot numbers.
+
+	Equivalent to |code-runner.close_all_terminals| or
+	|code-runner.close_terminal|.
+
+==============================================================================
+5. API						*code-runner-api*
 
 All functions are accessed via: >lua
 
 	local cr = require("code-runner")
 <
+
 ------------------------------------------------------------------------------
 					      *code-runner.run_current_file*
 `run_current_file`([{new_terminal}])
@@ -229,7 +311,7 @@ All functions are accessed via: >lua
 	Interrupt and close every active runner terminal.
 
 ==============================================================================
-5. TERMINAL SLOTS				*code-runner-slots*
+6. TERMINAL SLOTS				*code-runner-slots*
 
 Runner terminals are numbered from 1 up to |code-runner-config-max_slots|.
 Slot numbers are managed automatically:
@@ -247,14 +329,14 @@ The behaviour when all slots are busy is controlled by
 |code-runner-config-busy_behaviour|.
 
 ==============================================================================
-6. RUNNERS					*code-runner-runners*
- 
+7. RUNNERS					*code-runner-runners*
+
 A runner is a Lua module that tells code-runner how to build the shell command
 for a given filetype. Each runner is registered by filetype name so the
 correct one is selected automatically when a file is run.
- 
+
 ------------------------------------------------------------------------------
-6.1 PYTHON RUNNER				*code-runner-runners-python*
+7.1 PYTHON RUNNER				*code-runner-runners-python*
 
 When a Python file is run, the interpreter is resolved in this order:
 
@@ -277,7 +359,7 @@ Both the interpreter path and the file path are shell-quoted automatically
 when they contain spaces.
 
 ------------------------------------------------------------------------------
-6.2 ADDING RUNNERS				*code-runner-runners-adding*
+7.2 ADDING RUNNERS				*code-runner-runners-adding*
 
 A runner is a Lua module that tells code-runner how to execute files of a
 given filetype. Create the module at: >
@@ -319,7 +401,7 @@ the `runners` table: >lua
 
 	local runners = {
 	    python = require("code-runner.languages.python"),
-	    lua   = require("code-runner.languages.lua"),
+	    lua    = require("code-runner.languages.lua"),
 	}
 <
 
