@@ -45,9 +45,9 @@ customise behaviour - see [Configuration](#configuration) below.
 ```lua
 use {
     "blm34/code-runner.nvim",
-    requries = { "akinsho/toggleterm.nvim" },
+    requires = { "akinsho/toggleterm.nvim" },
     config = function()
-        require("code-runner").setup(),
+        require("code-runner").setup()
     end,
 }
 ```
@@ -65,21 +65,19 @@ plugin. Please refer to the default settings below.
     <summary>Default Settings</summary>
 
 ```lua
-local defaults = {
-  max_slots = 3, -- The maximum number of terminals that can run in parallel
-  slot_id_offset = 100, -- The offset to apply to toggleterm's terminal id to avoid clashes
-  busy_behaviour = {
+require("code-runner").setup({
+    max_slots          = 3,     -- The maximum number of terminals that can run in parallel
+    slot_id_offset     = 100,   -- The offset to apply to toggleterm's terminal ID to avoid clashes
     @type "ask" | "interrupt" | "cancel" | "new"
-    behaviour = "ask", -- What to do if no terminals are available
-    interrupt_delay_ms = 100, -- How long to wait after interrupting a terminal before sending the next command
-  },
-  -- Settings specific to a given language
-  runners = {
-    python = {
-      venv_names = { ".venv", "venv", ".env", "env" }, -- Virtual environment names to look for to find an interpreter
+    busy_behaviour     = "ask", -- What to do if no terminals are available
+    interrupt_delay_ms = 100,   -- How long to wait after interrupting a terminal before sending the next command
+    -- Settings specific to a given language
+    runners = {
+        python = {
+            venv_names = { ".venv", "venv", ".env", "env" }, -- Virtual environment names to look for to find an interpreter
+        },
     },
-  },
-}
+})
 ```
 
 </details>
@@ -105,44 +103,46 @@ register letters, and slot numbers all tab-complete.
 
 ### API
 
-The following functions can be used in your keybindings:
+The following functions can be used in keybindings:
 
 ```lua
---Run the current file
---Optionally forcing the creation of a new terminal
+-- Run the current file.
+-- Optionally force a new terminal.
 ---@param new_terminal? boolean
 require("code-runner").run_current_file(new_terminal)
 
---Run a file whose path is stored in a register
---Optionally forcing the creation of a new terminal
---If no register is specified, a user selects from valid options
+-- Run a file whose path is stored in a register.
+-- Optionally force a new terminal.
+-- If no register is specified, a picker lists valid options.
 ---@param opts? {register?: string, new_terminal?: boolean}
 require("code-runner").run_file_from_register(opts)
 
---Rerun the last command
---Optionally forcing the creation of a new terminal
+-- Re-run the last command.
+-- Optionally force a new terminal.
 ---@param new_terminal? boolean
 require("code-runner").rerun_last_command(new_terminal)
 
---Save the current file's path into a register
---If a register is not specified, user can input
+-- Save the current file's path to a register.
+-- If no register is specified, the user is prompted.
 ---@param register? string
-require("code-runner").save_current_file_path_to_register(new_terminal)
+require("code-runner").save_current_file_path_to_register(register)
 
---Toggle a terminal's visibility
---If no terminal id is specified, user will be asked for one
+-- Toggle a terminal's visibility.
+-- If no slot is specified, the user is asked for one.
 ---@param slot? integer
 require("code-runner").toggle_terminal(slot)
 
---Toggle all terminals
---If any are open all will be closed. If all are closed, all will be opened.
+-- Toggle all terminals.
+-- Closes all if any are open, opens all if all are closed.
 require("code-runner").toggle_all_terminals()
 
---Close a terminal, interrupting anything that is running
---If no terminal id is specified, user will be asked for one
+-- Close a terminal, interrupting anything running in it.
+-- If no slot is specified, the user is asked for one.
 ---@param slot? integer
 require("code-runner").close_terminal(slot)
 
---Close all terminals, interrupting anything running
+-- Close all terminals, interrupting anything running.
 require("code-runner").close_all_terminals()
 ```
+
+For full documentation run `:h code-runner` inside Neovim.
