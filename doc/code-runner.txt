@@ -131,8 +131,8 @@ runners.python.venv_names ~
 	Type: `string[]`  Default: `{ ".venv", "venv", ".env", "env" }`
 
 	Directory names to check inside each ancestor directory when searching
-	for a Python virtual environment. See |code-runner-runners-python| for the
-	full resolution order.
+	for a Python virtual environment. See |code-runner-runners-python| for
+	the full resolution order.
 
 ==============================================================================
 4. COMMANDS					*code-runner-commands*
@@ -218,6 +218,7 @@ All functions are accessed via: >lua
 
 	local cr = require("code-runner")
 <
+
 ------------------------------------------------------------------------------
 					      *code-runner.run_current_file*
 `run_current_file`([{new_terminal}])
@@ -329,10 +330,11 @@ The behaviour when all slots are busy is controlled by
 
 ==============================================================================
 7. RUNNERS					*code-runner-runners*
+
 A runner is a Lua module that tells code-runner how to build the shell command
 for a given filetype. Each runner is registered by filetype name so the
 correct one is selected automatically when a file is run.
- 
+
 ------------------------------------------------------------------------------
 7.1 PYTHON RUNNER				*code-runner-runners-python*
 
@@ -399,7 +401,7 @@ the `runners` table: >lua
 
 	local runners = {
 	    python = require("code-runner.languages.python"),
-	    lua   = require("code-runner.languages.lua"),
+	    lua    = require("code-runner.languages.lua"),
 	}
 <
 
