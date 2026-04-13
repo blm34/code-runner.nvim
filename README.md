@@ -86,6 +86,23 @@ local defaults = {
 
 ## Usage
 
+### Commands
+
+A single `:CodeRunner` command covers all functionality. Subcommand names,
+register letters, and slot numbers all tab-complete.
+
+| Command | Description |
+|---|---|
+| `:CodeRunner` | Run the current file |
+| `:CodeRunner!` | Run the current file in a new terminal |
+| `:CodeRunner FromReg [x]` | Run the file in register `x` (picker if omitted) |
+| `:CodeRunner! FromReg [x]` | Run the file in register `x` in a new terminal |
+| `:CodeRunner SaveReg [x]` | Save the current file path to register `x` (prompts if omitted) |
+| `:CodeRunner Last` | Re-run the last command |
+| `:CodeRunner! Last` | Re-run the last command in a new terminal |
+| `:CodeRunner Toggle [slot]` | Toggle all terminals, or a specific slot |
+| `:CodeRunner Close [slot]` | Close all terminals, or a specific slot |
+
 ### API
 
 The following functions can be used in your keybindings:
