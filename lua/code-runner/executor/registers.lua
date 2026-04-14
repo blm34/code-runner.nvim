@@ -34,20 +34,20 @@ function M.get_registers_containing_filepaths(supported_filetypes)
         local contents = vim.fn.getreg(reg)
         if contents and contents ~= "" then
             local path = contents:gsub("\n", ""):gsub("%s+$", "")
-            if vim.fn.filereadable(path) == 0 then goto continue end
-            local filetype = vim.filetype.match({ filename = path })
-            if filetype and supported_filetypes[filetype] then
-                table.insert(
-                    regs,
-                    {
-                        reg = reg,
-                        path = path,
-                        label = string.format("@%s: %s", reg, path)
-                    }
-                )
+            if vim.fn.filereadable(path) ~= 0 then
+                local filetype = vim.filetype.match({ filename = path })
+                if filetype and supported_filetypes[filetype] then
+                    table.insert(
+                        regs,
+                        {
+                            reg = reg,
+                            path = path,
+                            label = string.format("@%s: %s", reg, path)
+                        }
+                    )
+                end
             end
         end
-        ::continue::
     end
     return regs
 end
