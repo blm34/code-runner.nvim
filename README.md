@@ -1,5 +1,7 @@
 # code-runner.nvim
 
+[![Tests](https://github.com/blm34/code-runner.nvim/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/blm34/code-runner.nvim/actions/workflows/tests.yml)
+
 Run code files from within Neovim in an embedded terminal.
 
 ## Features
