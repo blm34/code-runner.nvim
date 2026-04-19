@@ -1,4 +1,4 @@
-# code-runner.nvim
+<h1 align="center">code-runner.nvim</h1>
 
 <p align="center">
   <a href="https://github.com/blm34/code-runner.nvim/actions/workflows/test.yml">
@@ -14,7 +14,9 @@
   <img src="https://img.shields.io/badge/Neovim-0.10%2B-blue" alt="Neovim" />
 </p>
 
-Run code files from within Neovim in an embedded terminal.
+<p align="center">
+    Run code files from within Neovim in an embedded terminal
+</p>
 
 ## Features
 
