@@ -1,6 +1,18 @@
 # code-runner.nvim
 
-[![Tests](https://github.com/blm34/code-runner.nvim/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/blm34/code-runner.nvim/actions/workflows/test.yml)
+<p align="center">
+  <a href="https://github.com/blm34/code-runner.nvim/actions/workflows/test.yml">
+    <img src="https://github.com/blm34/code-runner.nvim/actions/workflows/test.yml/badge.svg?branch=main" alt="Tests" />
+  </a>
+  <a href="https://github.com/blm34/code-runner.nvim/releases/latest">
+    <img src="https://img.shields.io/github/v/release/blm34/code-runner.nvim" alt="Release" />
+  </a>
+  <a href="./LICENSE">
+    <img src="https://img.shields.io/github/license/blm34/code-runner.nvim" alt="License" />
+  </a>
+  <img src="https://img.shields.io/github/stars/blm34/code-runner.nvim?style=social" alt="Stars" />
+  <img src="https://img.shields.io/badge/Neovim-0.10%2B-blue" alt="Neovim" />
+</p>
 
 Run code files from within Neovim in an embedded terminal.
 
